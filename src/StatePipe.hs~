@@ -1,0 +1,27 @@
+module StatePipe
+
+import Control.Monad.State.Strict
+import Pipes
+import Pipes.Lift
+import qualified Pipes.Prelude as P
+
+pipeline = runStateP 0 incrementP >-> P.take 10 >-> P.print
+
+action = evalState increment 0 >>= take 10 >>= print
+
+withPipe = do print "printing counter using a pipe"
+              runEffect $ pipeline
+
+noPipe = do print "printing counter without a pipe" 
+            action 
+
+incrementP = forever $ do
+  modify (+1)
+  yield get
+
+increment = forever $ do
+   modify (+1)
+   return get
+
+main = do noPipe
+          withPipe
